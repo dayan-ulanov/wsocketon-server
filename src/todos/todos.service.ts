@@ -35,4 +35,11 @@ export class TodosService {
       .where(eq(schema.todos.id, todoId))
       .returning();
   }
+
+  async deleteTodo(todoId: string) {
+    return this.database
+      .delete(schema.todos)
+      .where(eq(schema.todos.id, todoId))
+      .returning();
+  }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
@@ -30,10 +31,14 @@ export class TodosController {
   @Get(':id')
   async getTodoById(@Param('id') todoId: string) {
     try {
-      return this.todosService.getTodoById(todoId);
+      const todo = await this.todosService.getTodoById(todoId);
+      if (!todo) {
+        throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+      }
+      return todo;
     } catch {
       throw new HttpException(
-        'Error fetching todo by id',
+        'Error fetching todo',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -53,6 +58,30 @@ export class TodosController {
     @Param('id') todoId: string,
     @Body() request: UpdateTodoDto,
   ) {
-    return this.todosService.updateTodo(todoId, request);
+    try {
+      const updatedTodo = await this.todosService.updateTodo(todoId, request);
+      if (!updatedTodo) {
+        throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+      }
+      return updatedTodo;
+    } catch {
+      throw new HttpException('Error updating todo', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Delete(':id')
+  async deleteTodo(@Param('id') id: string) {
+    try {
+      const deletedTodo = await this.todosService.deleteTodo(id);
+      if (!deletedTodo) {
+        throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+      }
+      return { code: HttpStatus.OK, message: 'Todo successfully deleted' };
+    } catch {
+      throw new HttpException(
+        { code: HttpStatus.BAD_REQUEST, message: 'Error deleting todo' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
