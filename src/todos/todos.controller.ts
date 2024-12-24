@@ -5,10 +5,11 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { TodosService } from './todos.service';
-import { CreateTodoDto } from './todos.dto';
+import { CreateTodoDto, UpdateTodoDto } from './todos.dto';
 
 @Controller('todos')
 export class TodosController {
@@ -45,5 +46,13 @@ export class TodosController {
     } catch {
       throw new HttpException('Error creating todo', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  @Patch(':id')
+  async updateTodo(
+    @Param('id') todoId: string,
+    @Body() request: UpdateTodoDto,
+  ) {
+    return this.todosService.updateTodo(todoId, request);
   }
 }

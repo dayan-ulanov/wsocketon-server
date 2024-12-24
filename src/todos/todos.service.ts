@@ -22,11 +22,17 @@ export class TodosService {
   }
 
   async createTodo(todo: typeof schema.todos.$inferInsert) {
-    const [createdTodo] = await this.database
-      .insert(schema.todos)
-      .values(todo)
-      .returning();
+    return this.database.insert(schema.todos).values(todo).returning();
+  }
 
-    return createdTodo;
+  async updateTodo(
+    todoId: string,
+    todo: Partial<typeof schema.todos.$inferInsert>,
+  ) {
+    return this.database
+      .update(schema.todos)
+      .set(todo)
+      .where(eq(schema.todos.id, todoId))
+      .returning();
   }
 }
