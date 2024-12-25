@@ -8,4 +8,7 @@ export class PaginationDto {
   @IsOptional()
   @Min(0)
   offset?: number;
+
+  @IsOptional()
+  query?: string;
 }

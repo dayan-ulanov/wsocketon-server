@@ -38,6 +38,20 @@ export class TodosService {
     };
   }
 
+  async searchByQuery(query: string) {
+    const formattedQuery = `%${query.trim().toLowerCase()}%`;
+
+    return await this.database
+      .select()
+      .from(schema.todos)
+      .where(
+        sql`
+        ${schema.todos.title} ILIKE ${formattedQuery}
+        OR ${schema.todos.description} ILIKE ${formattedQuery}
+      `,
+      );
+  }
+
   async getTodoById(todoId: string) {
     return this.database.query.todos.findFirst({
       where: eq(schema.todos.id, todoId),

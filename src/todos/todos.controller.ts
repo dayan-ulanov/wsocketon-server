@@ -21,6 +21,9 @@ export class TodosController {
   @Get()
   async getTodos(@Query() paginationDto: PaginationDto) {
     try {
+      if (paginationDto.query) {
+        return await this.todosService.searchByQuery(paginationDto.query);
+      }
       return await this.todosService.getTodos(paginationDto);
     } catch {
       throw new HttpException(
