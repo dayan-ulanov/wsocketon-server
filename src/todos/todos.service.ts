@@ -2,7 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from 'src/database/database-connection';
 import * as schema from './todos.schema';
-import { eq } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @Injectable()
 export class TodosService {
@@ -11,8 +12,30 @@ export class TodosService {
     private readonly database: NodePgDatabase<typeof schema>,
   ) {}
 
-  async getTodos() {
-    return this.database.query.todos.findMany();
+  async getTodos(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+
+    if (limit < 0 || offset < 0) {
+      throw new Error('Limit and offset must be non-negative numbers');
+    }
+
+    const todos = await this.database.execute(
+      sql`SELECT * FROM ${schema.todos} LIMIT ${limit} OFFSET ${offset}`,
+    );
+
+    const parsedTodos = todos.rows || [];
+
+    const totalCountResult = await this.database
+      .select({ total: count() })
+      .from(schema.todos);
+
+    const total = totalCountResult[0]?.total || 0;
+
+    return {
+      data: parsedTodos,
+      count: total,
+      hasNextPage: offset + parsedTodos.length < total,
+    };
   }
 
   async getTodoById(todoId: string) {

@@ -8,18 +8,20 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { TodosService } from './todos.service';
 import { CreateTodoDto, UpdateTodoDto } from './todos.dto';
+import { PaginationDto } from 'src/dto/pagination.dto';
 
 @Controller('todos')
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}
 
   @Get()
-  async getTodos() {
+  async getTodos(@Query() paginationDto: PaginationDto) {
     try {
-      return this.todosService.getTodos();
+      return await this.todosService.getTodos(paginationDto);
     } catch {
       throw new HttpException(
         'Error fetching todos',
