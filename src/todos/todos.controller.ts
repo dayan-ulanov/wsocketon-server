@@ -25,9 +25,9 @@ export class TodosController {
         return await this.todosService.searchByQuery(paginationDto.query);
       }
       return await this.todosService.getTodos(paginationDto);
-    } catch {
+    } catch (error) {
       throw new HttpException(
-        'Error fetching todos',
+        `Error fetching todos: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -38,12 +38,15 @@ export class TodosController {
     try {
       const todo = await this.todosService.getTodoById(todoId);
       if (!todo) {
-        throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          `Todo with ID ${todoId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
       }
       return todo;
-    } catch {
+    } catch (error) {
       throw new HttpException(
-        'Error fetching todo',
+        `Error fetching todo by ID: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -53,8 +56,11 @@ export class TodosController {
   async createTodo(@Body() request: CreateTodoDto) {
     try {
       return this.todosService.createTodo(request);
-    } catch {
-      throw new HttpException('Error creating todo', HttpStatus.BAD_REQUEST);
+    } catch (error) {
+      throw new HttpException(
+        `Error creating todo: ${error.message}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -66,11 +72,17 @@ export class TodosController {
     try {
       const updatedTodo = await this.todosService.updateTodo(todoId, request);
       if (!updatedTodo) {
-        throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          `Todo with ID ${todoId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
       }
       return updatedTodo;
-    } catch {
-      throw new HttpException('Error updating todo', HttpStatus.BAD_REQUEST);
+    } catch (error) {
+      throw new HttpException(
+        `Error updating todo: ${error.message}`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -79,12 +91,15 @@ export class TodosController {
     try {
       const deletedTodo = await this.todosService.deleteTodo(id);
       if (!deletedTodo) {
-        throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          `Todo with ID ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
       }
       return { code: HttpStatus.OK, message: 'Todo successfully deleted' };
-    } catch {
+    } catch (error) {
       throw new HttpException(
-        { code: HttpStatus.BAD_REQUEST, message: 'Error deleting todo' },
+        `Error deleting todo: ${error.message}`,
         HttpStatus.BAD_REQUEST,
       );
     }

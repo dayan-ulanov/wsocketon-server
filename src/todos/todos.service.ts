@@ -19,64 +19,106 @@ export class TodosService {
       throw new Error('Limit and offset must be non-negative numbers');
     }
 
-    const todos = await this.database.execute(
-      sql`SELECT * FROM ${schema.todos} LIMIT ${limit} OFFSET ${offset}`,
-    );
+    try {
+      const todos = await this.database.execute(
+        sql`SELECT * FROM ${schema.todos} LIMIT ${limit} OFFSET ${offset}`,
+      );
 
-    const parsedTodos = todos.rows || [];
+      const parsedTodos = todos.rows || [];
 
-    const totalCountResult = await this.database
-      .select({ total: count() })
-      .from(schema.todos);
+      const totalCountResult = await this.database
+        .select({ total: count() })
+        .from(schema.todos);
 
-    const total = totalCountResult[0]?.total || 0;
+      const total = totalCountResult[0]?.total || 0;
 
-    return {
-      data: parsedTodos,
-      count: total,
-      hasNextPage: offset + parsedTodos.length < total,
-    };
+      return {
+        data: parsedTodos,
+        count: total,
+        hasNextPage: offset + parsedTodos.length < total,
+      };
+    } catch (error) {
+      throw new Error(`Failed to fetch todos: ${error.message}`);
+    }
   }
 
   async searchByQuery(query: string) {
     const formattedQuery = `%${query.trim().toLowerCase()}%`;
 
-    return await this.database
-      .select()
-      .from(schema.todos)
-      .where(
-        sql`
-        ${schema.todos.title} ILIKE ${formattedQuery}
-        OR ${schema.todos.description} ILIKE ${formattedQuery}
-      `,
-      );
+    try {
+      return await this.database
+        .select()
+        .from(schema.todos)
+        .where(
+          sql`
+          ${schema.todos.title} ILIKE ${formattedQuery}
+          OR ${schema.todos.description} ILIKE ${formattedQuery}
+        `,
+        );
+    } catch (error) {
+      throw new Error(`Failed to search todos: ${error.message}`);
+    }
   }
 
   async getTodoById(todoId: string) {
-    return this.database.query.todos.findFirst({
-      where: eq(schema.todos.id, todoId),
-    });
+    try {
+      const todo = await this.database.query.todos.findFirst({
+        where: eq(schema.todos.id, todoId),
+      });
+
+      if (!todo) {
+        throw new Error(`Todo with ID ${todoId} not found`);
+      }
+
+      return todo;
+    } catch (error) {
+      throw new Error(`Failed to get todo by ID: ${error.message}`);
+    }
   }
 
   async createTodo(todo: typeof schema.todos.$inferInsert) {
-    return this.database.insert(schema.todos).values(todo).returning();
+    try {
+      return this.database.insert(schema.todos).values(todo).returning();
+    } catch (error) {
+      throw new Error(`Failed to create todo: ${error.message}`);
+    }
   }
 
   async updateTodo(
     todoId: string,
     todo: Partial<typeof schema.todos.$inferInsert>,
   ) {
-    return this.database
-      .update(schema.todos)
-      .set(todo)
-      .where(eq(schema.todos.id, todoId))
-      .returning();
+    try {
+      const updatedTodo = await this.database
+        .update(schema.todos)
+        .set(todo)
+        .where(eq(schema.todos.id, todoId))
+        .returning();
+
+      if (!updatedTodo) {
+        throw new Error(`Todo with ID ${todoId} not found`);
+      }
+
+      return updatedTodo;
+    } catch (error) {
+      throw new Error(`Failed to update todo: ${error.message}`);
+    }
   }
 
   async deleteTodo(todoId: string) {
-    return this.database
-      .delete(schema.todos)
-      .where(eq(schema.todos.id, todoId))
-      .returning();
+    try {
+      const deletedTodo = await this.database
+        .delete(schema.todos)
+        .where(eq(schema.todos.id, todoId))
+        .returning();
+
+      if (!deletedTodo) {
+        throw new Error(`Todo with ID ${todoId} not found`);
+      }
+
+      return deletedTodo;
+    } catch (error) {
+      throw new Error(`Failed to delete todo: ${error.message}`);
+    }
   }
 }
