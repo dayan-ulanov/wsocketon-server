@@ -4,6 +4,7 @@ import { DATABASE_CONNECTION } from './database-connection';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import * as todoSchema from '../todos/todos.schema';
+import * as userSchema from '../auth/auth.schema';
 
 @Module({
   providers: [
@@ -16,6 +17,7 @@ import * as todoSchema from '../todos/todos.schema';
         return drizzle(pool, {
           schema: {
             ...todoSchema,
+            ...userSchema,
           },
         });
       },
